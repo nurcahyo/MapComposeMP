@@ -470,14 +470,18 @@ internal class ZoomPanRotateState(
         return block(xPx, yPx)
     }
 
-    override fun onDoubleTap(focalPt: Offset) {
+    override fun onDoubleTap(focalPt: Offset, isZoomOut: Boolean) {
         if (!isZoomingEnabled) return
 
-        val destScale = (
-                2.0.pow(floor(ln((scale * 2).toDouble()) / ln(2.0))).toFloat()
-                ).let {
+        val destScale = if (!isZoomOut) {
+            (2.0.pow(floor(ln((scale * 2).toDouble()) / ln(2.0))).toFloat()).let {
                 if (shouldLoopScale && it > maxScale) minScale else it
             }
+        } else {
+            (2.0.pow(floor(ln((scale / 2).toDouble()) / ln(2.0))).toFloat()).let {
+                if (shouldLoopScale && it < minScale) maxScale else it
+            }
+        }
 
         val angleRad = -rotation.toRad()
         val focalPtRotated = rotateFocalPoint(focalPt, angleRad)
@@ -527,7 +531,6 @@ internal class ZoomPanRotateState(
             }
         }
     }
-
     override fun onSizeChanged(composableScope: CoroutineScope, size: IntSize) {
         scope = composableScope
 

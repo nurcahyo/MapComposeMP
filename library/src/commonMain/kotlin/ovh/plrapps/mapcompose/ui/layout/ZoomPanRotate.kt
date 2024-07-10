@@ -13,6 +13,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Velocity
 import kotlinx.coroutines.CoroutineScope
+import ovh.plrapps.mapcompose.ui.gestures.detectScrollGesture
 import ovh.plrapps.mapcompose.ui.gestures.detectTransformGestures
 import ovh.plrapps.mapcompose.ui.gestures.detectTapGestures
 
@@ -49,7 +50,7 @@ internal fun ZoomPanRotate(
                 if (!gestureListener.isListeningForGestures()) return@pointerInput
                 detectTapGestures(
                     onTap = { offset -> gestureListener.onTap(offset) },
-                    onDoubleTap = { offset -> gestureListener.onDoubleTap(offset) },
+                    onDoubleTap = { offset, isZoomOut -> gestureListener.onDoubleTap(offset, isZoomOut) },
                     onDoubleTapZoom = { centroid, zoom -> gestureListener.onScaleRatio(zoom, centroid)},
                     onDoubleTapZoomFling = { centroid, velocity ->
                         gestureListener.onFlingZoom(velocity, centroid)
@@ -89,7 +90,7 @@ internal interface GestureListener {
     fun onTouchDown()
     fun onPress()
     fun onTap(focalPt: Offset)
-    fun onDoubleTap(focalPt: Offset)
+    fun onDoubleTap(focalPt: Offset, isZoomOut: Boolean = false)
     fun onTwoFingersTap(focalPt: Offset)
     fun onLongPress(focalPt: Offset)
     fun isListeningForGestures(): Boolean
