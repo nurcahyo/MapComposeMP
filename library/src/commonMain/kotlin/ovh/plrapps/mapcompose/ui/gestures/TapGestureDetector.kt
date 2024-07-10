@@ -12,6 +12,7 @@ import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.isMetaPressed
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.ViewConfiguration
@@ -41,7 +42,7 @@ private val NoPressGesture: suspend PressGestureScope.(Offset) -> Unit = { }
  * second tap, and a double-tap can no-longer timeout.
  */
 internal suspend fun PointerInputScope.detectTapGestures(
-    onDoubleTap: ((Offset) -> Unit)? = null,
+    onDoubleTap: ((Offset, Boolean) -> Unit)? = null,
     onDoubleTapZoom: (centroid: Offset, zoom: Float) -> Unit,
     onDoubleTapZoomFling: (centroid: Offset, velocity: Float) -> Unit,
     onLongPress: ((Offset) -> Unit)? = null,
@@ -115,7 +116,6 @@ internal suspend fun PointerInputScope.detectTapGestures(
                     if (onPress !== NoPressGesture) {
                         launch { pressScope.onPress(secondDown.position) }
                     }
-
                     // Now, either double-tap or zoom gesture. This is where we deviate
                     // from the framework : no timeout to detect long-press.
                     val secondUp = waitForUpOrCancellation()
@@ -124,7 +124,7 @@ internal suspend fun PointerInputScope.detectTapGestures(
                         launch {
                             pressScope.release()
                         }
-                        onDoubleTap(secondUp.position)
+                        onDoubleTap(secondUp.position, currentEvent.keyboardModifiers.isMetaPressed)
                     } else {
                         val zoomVelocityTracker = VelocityTracker()
                         var pan = Offset.Zero
